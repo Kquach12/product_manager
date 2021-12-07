@@ -1,17 +1,20 @@
-import React from 'react'
+import React, {useState, useEffect} from 'react'
 import axios from 'axios';
 import { Link } from '@reach/router';
+import DeleteButton from './DeleteButton';
 
 
 const ProductList = (props) => {
-    const { removeFromDom, products} = props;
-    const deleteProduct = (productId) => {
-        axios.delete('http://localhost:8000/api/products/' + productId)
-            .then(res => {
-                removeFromDom(productId)
-            })
-            .catch(err => console.log(err))
+    const [products, setProducts] = useState([]);
+    useEffect(() => {
+        axios.get('http://localhost:8000/api/products')
+            .then(res => setProducts(res.data));
+    }, [])
+
+    const removeFromDom = productId => {
+        setProducts(products.filter(product => product._id != productId))
     }
+
     return (
         <div>
             <table>
@@ -22,7 +25,7 @@ const ProductList = (props) => {
                     </tr>
                 </thead>
                 <tbody>
-                    {props.products.map((product, idx)=>{
+                    {products.map((product, idx)=>{
                         return(
                             <tr>
                                 <td><a key={idx} href={`/products/${product._id}`}>{product.title}</a></td>
@@ -30,7 +33,7 @@ const ProductList = (props) => {
                                 <td>
                                     <Link to={"/products/" + product._id + "/edit"}>Edit</Link> 
                                     |  
-                                    <button onClick={(e)=>{deleteProduct(product._id)}}>Delete</button>
+                                    <DeleteButton productId={product._id} successCallback={()=>removeFromDom(product._id)} />
                                 </td>
                             </tr>
                             
